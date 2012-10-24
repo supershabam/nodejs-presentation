@@ -1,0 +1,11 @@
+{
+  "name": "threads",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node threads"
+  },
+  "dependencies": {
+    "commander": "~1.0.5"
+  }
+}

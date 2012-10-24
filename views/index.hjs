@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Node.JS Is Stupid</title>
+    <link rel='stylesheet' href='/stylesheets/reveal.css' />
+    <link rel='stylesheet' href='/stylesheets/theme.css' />
+    <link rel='stylesheet' href='/stylesheets/highlight.css' />
+    <script src='/javascripts/lib/head.min.js'></script>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <section>
+            <h1>Node.JS</h1>
+            <p>node.js is stupid and if you use it so are you</p>
+            <iframe width="560" height="315" src="http://www.youtube.com/embed/1e1zzna-dNw" frameborder="0" allowfullscreen></iframe>
+            <p class="quote">Ryan Dahl said let there be javascript on the server, and it was good and non-blocking</p>
+          </section>
+          <section>
+            <h2>problems</h2>
+            <ul>
+              <li class="fragment roll-in">waste of... time</li>
+              <li class="fragment roll-in">built on lies</li>
+              <li class="fragment roll-in">javascript is slow</li>
+              <li class="fragment roll-in">non-blocking actually blocks</li>
+              <li class="fragment roll-in">anything but lightweight</li>
+              <li class="fragment roll-in">laggy real-time</li>
+            </ul>
+            <h2>good things!</h2>
+            <ul>
+              <li class="fragment roll-in">... distributed devices?</li>
+            </ul>
+            <p class="quote">Have you read anything from the sermon on the /mnt/node?</p>
+          </section>
+        </section>
+        <section>
+          <h1>I'm an Idiot</h1>
+          <p>I've wasted about <span class="fragment highlight-red time-live-seconds" data-time="2010-07-21"></span> seconds of my life</p>
+          <hr />
+          <h3>and I want to waste moar!</h3>
+          <p class="quote">Happiness is when what you think, what you say, and what you do are in NodeJS</p> 
+        </section>
+        <section>
+          <section>
+            <h1>Let's node</h1>
+            <img src="/images/node_turtle.png" style="float: right;" />
+            <ul>
+              <li><a href="http://nodejs.org/" target="_blank">Install</a></li>
+              <li><a href="http://nodejs.org/api/" target="_blank">Read</a></li>
+              <li><a href="https://npmjs.org/" target="_blank">Extend</a></li>
+              <li>Node!</li>
+            </ul>
+            <p class="quote">And V8 brought forth her firstborn son, and wrapped him in a CLI, and installed him on the server; because there was no room for them in the browser.</p>
+          </section>
+          <section>
+            <h2>a simple web server</h2>
+            <pre><code>var http = require('http');
+http.createServer(function (req, res) {
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.end('Hello World\n');
+}).listen(1337, '127.0.0.1');
+console.log('Server running at http://127.0.0.1:1337/');</code></pre>
+            <div class="fragment roll-in">
+              <h4>Note</h4>
+              <ul>
+                <li>this is very raw looking code</li>
+                <li>no cgi interface (for good and bad)</li>
+              </ul>
+            </div>
+            <p class="quote">The developer Ryan said to the Apache, “Because you have done this, cursed are you above all webservers and above all LAMP stacks in the field; on your belly you shall go, and threaded requests you shall eat all the days of your life."</p>
+          </section>
+          <section>
+            <h2>a blocking web server</h2>
+            <pre><code>var http = require('http');
+
+function doSomeLongOperation() {
+  for (var i = 0; i < 1e10; ++i) {}
+}
+
+http.createServer(function (req, res) {
+  console.log('oh hai! We got a client!');
+  doSomeLongOperation();
+  console.log('done with that operation, time to send the result');
+  res.end('some result');
+}).listen(1337, '127.0.0.1');
+console.log('Server running at http://127.0.0.1:1337/');</code></pre>
+            <div class="fragment roll-in">
+              <p>second request can't start until the first finishes</p>
+            </div>
+            <p class="quote">But seek first his node and his js, and all these things will be given to you as well</p>
+          </section>
+          <section>
+            <h2>what we just did</h2>
+            <h3>(in a way)</h2>
+            <pre><code>function handleClient(client) {
+  console.log('oh hai! We got a client!');
+  doSomeLongOperation();
+  console.log('done with that operation, time to send the result');
+  client.end('some result');
+}
+
+handleClient(client1);
+handleClient(client2);</code></pre>
+            <img class="fragment roll-in" src="/images/tim_eric_mind_blown.gif" />
+          </section>
+        </section>
+        <section>
+          <section>
+            <h1>The Event Loop</h1>
+            <h4 class="fragment roll-in">in German: Das Event Loop</h4>
+            <div class="fragment roll-in">
+              <br />
+              <h3>node's <span class="fragment highlight-red">single thread</span> dequeues the next <span class="fragment highlight-red">code block</span> and executes it <span class="fragment highlight-red">to completion</span>.</h3>
+            </div>
+            <p class="quote">Let he who is without threads cast the first event loop</p>
+          </section>
+          <section>
+            <h2>What's a code block?</h2>
+            <pre><code>function executeSecond() {
+  console.log('I execute second');
+}
+function executeThird() {
+  console.log('I execute third');
+}
+console.log('I execute first');
+
+// schedule code to execute after 0 seconds 
+// aka as soon as possible
+setTimeout(executeSecond, 0);
+setTimeout(executeThird, 0);
+
+// can also use
+// process.nextTick(executeSecond);
+</code></pre>
+
+            <p class="quote">Therefore shall a man leave his father and mother, and shall cleave unto his nodejs: and they shall be one flesh.</p>
+          </section>
+          <section>
+            <h2>What if I block?</h2>
+            <pre><code>function executeSecond() {
+  console.log('I execute second');
+}
+function executeThird() {
+  console.log('I execute third');
+}
+function executeForever() {
+  while(true) {}
+}
+
+console.log('I execute first');
+
+// schedule code to execute after 0 seconds aka as soon as possible
+setTimeout(executeSecond, 0);
+setTimeout(executeForever, 0);
+setTimeout(executeThird, 0);</code></pre>
+
+            <p class="quote">restrain thine processes and memory abuse, you node not what ye do</p>
+          </section>
+          <section>
+            <h2>What if I need to block?</h2>
+            <p><small>e.g. read a file, write to the network, query a database</small></p>
+            <p>Answer: <h4 class="fragment roll-in">don't</h4></p>
+            <div class="fragment roll-in">
+              <p>Slightly Expanded Answer: <h4>use a callback</h4></p>
+            </div>
+            <p class="quote">Blocking is an enemy to the Event Loop; and has been since the fall of threads, and will be, forever and ever, unless he yields to the enticings of the Holy Issacs, and putteth off the natural procedural code and becometh a nodester.</p>
+          </section>
+        </section>
+        <section>
+          <section>
+            <h1>callbacks</h1>
+            <h4>I <span class="fragment highlight-red">can't wait</span> around for you to finish.</h4>
+            <h4>Instead, <span class="fragment highlight-red">I'll give you instructions</span> now for what to do when you're ready</h4>
+            <pre><code>var fs = require('fs');
+console.log('before readFile');
+fs.readFile('/somefile.txt', function(err, data) {
+  console.log('inside readFile');
+});
+console.log('after readfile');</code></pre>
+            <p class="quote">For Ryan Dahl so loved the world, that he gave his only begotten event loop, that whosoever performed async io could have eternal callbacks.</p>
+          </section>
+        </section>
+      </div>
+    </div>
+    <script>
+      head.js(
+        '/javascripts/lib/reveal.js', 
+        '/javascripts/lib/moment.min.js',
+        '/javascripts/lib/jquery-1.8.2.min.js',
+        function() {
+          Reveal.initialize({
+            dependencies: [
+              // Syntax highlight for <code> elements
+              { 
+                src: '/javascripts/lib/highlight.js', 
+                async: true, 
+                callback: function() { 
+                  window.hljs.initHighlightingOnLoad(); 
+                } 
+              }
+            ]
+          });
+
+          $('.time-live-seconds').each(function() {
+            var $el = $(this)
+              , startTime = moment($el.attr('data-time'))
+              ;
+
+            (function tick() {
+              $el.text(~~moment.duration(moment().valueOf() - startTime.valueOf()).asSeconds());
+              setTimeout(tick, 1000);
+            })();
+          });
+        });
+    </script>
+  </body>
+</html>
+<!--
+complete waiste of time
+built on lies
+big lies
+javascript is slow
+calculate pi
+
+-->

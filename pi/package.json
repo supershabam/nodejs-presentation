@@ -1,0 +1,12 @@
+{
+  "name": "pi",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node pi"
+  },
+  "dependencies": {
+    "commander": "~1.0.5",
+    "moment": "~1.7.2"
+  }
+}
