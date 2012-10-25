@@ -14,7 +14,7 @@
           <section>
             <h1>Node.JS</h1>
             <p>node.js is stupid and if you use it so are you</p>
-            <iframe width="560" height="315" src="http://www.youtube.com/embed/1e1zzna-dNw" frameborder="0" allowfullscreen></iframe>
+            <iframe class="fragment roll-in" width="560" height="315" src="http://www.youtube.com/embed/1e1zzna-dNw" frameborder="0" allowfullscreen></iframe>
             <p class="quote">Ryan Dahl said let there be javascript on the server, and it was good and non-blocking</p>
           </section>
           <section>
@@ -25,7 +25,6 @@
               <li class="fragment roll-in">javascript is slow</li>
               <li class="fragment roll-in">non-blocking actually blocks</li>
               <li class="fragment roll-in">anything but lightweight</li>
-              <li class="fragment roll-in">laggy real-time</li>
             </ul>
             <h2>good things!</h2>
             <ul>
@@ -180,6 +179,174 @@ fs.readFile('/somefile.txt', function(err, data) {
 console.log('after readfile');</code></pre>
             <p class="quote">For Ryan Dahl so loved the world, that he gave his only begotten event loop, that whosoever performed async io could have eternal callbacks.</p>
           </section>
+          <section>
+            <h2>callback structure</h2>
+            <pre><code>function myCallback(err, result1, result2, ...) {
+  if (err) return handleError(err);
+  handleResults(result1, result2);
+}</code></pre>
+            <pre><code>function myAsyncTask(param1, param2, cb) {
+  db.query(param1, param2, function(err, row) {
+    if (err) return cb(err); // pass up error
+    return cb(null, row);
+  });
+}</code></pre>
+            <p class="quote">Node is my shepherd, I shall not lock. He makes me program asynchronously, he leads me to more memory effecient code, he restores my process. He guides me in events of streams for his name’s sake. Even though I walk through the valley of the shadow of threaded processes, I will fear no mutex, for Node is with me; your editor and your cli, they comfort me. You prepare a database before me in the presence of millions of users. You anoint my fingers with javascript; my code overflows. Surely goodness and events will follow me all the days of my life, and I will dwell in the house of Node forever.<p>
+          </section>
+          <section>
+            <h2>diagonal code</h2>
+            <p>callbacks tend to accumulate...</p>
+            <pre class="small"><code>service.updateUsername = function(userId, username, cb) {
+  // fetch user object from database
+  service.getUser(userId, function(err, user) {
+    if (err) return cb(err);
+    if (user.username === username) return cb(new Error('this is already your username'));
+
+    // check against db for available usernames
+    service.isUsernameAvailable(username, function(err, isUsernameAvailable) {
+      if (err) return cb(err);
+
+      if (!isUsernameAvailable) return cb(new Error('username is unavailable'));
+
+      user.set('username', username);
+      user.save(function(err) {
+        if (err) return cb(err);
+
+        // we made it!
+        return cb();
+      });
+    });
+  });
+};</code></pre>
+            <p class="quote">Ask not what Node can do for you, but how far you can nest your callbacks for Node</p>
+          </section>
+          <section>
+            <h2>parallel code</h2>
+            <h4>with great power comes great responsibility</h4>
+            <a href="http://namechk.com/" target="_blank">NameChk</a>
+            <pre class="small"><code>service.checkName = function(username, cb) {
+  var names = {}
+    ;
+  service.facebook.checkName(username, function(err, result) {
+    if (err) return cb(err);
+
+    names['facebook'] = result;
+    if (names['twitter'] !== undefined) return cb(null, result);
+  });
+  service.twitter.checkName(username, function(err, result) {
+    if (err) return cb(err);
+
+    names['twitter'] = result;
+    if (names['facebook'] !== undefined) return cb(null, result);
+  });
+};</code></pre>
+            <p class="quote">I can code all things through Node who events my io</p>
+          </section>
+        </section>
+        <section>
+          <section>
+            <h1>control flow</h1>
+            <p>big problem, too many solutions</p>
+            <ul>
+              <li><a href="https://github.com/caolan/async" target="_blank">async</a></li>
+              <li><a href="https://github.com/zzdhidden/node-jquery-deferred" target="_blank">deferred</a></li>
+              <li><a href="https://github.com/coolaj86/futures" target="_blank">futures</a></li>
+              <li><a href="https://github.com/kriszyp/promised-io" target="_blank">promises</a></li>
+              <li><a href="https://github.com/laverdet/node-fibers" target="_blank">fibres</a></li>
+              <li class="fragment roll-in">[your library here]</li>
+            </ul>
+            <p class="quote">But the fruit of Node.js is love, joy, events, patience, kindness, goodness, async i/o, and control-flow libraries. Against such things there is no law.</p>
+          </section>
+        </section>
+        <section>
+          <section>
+            <h1>problems</h1>
+            <ul>
+              <li class="">waste of... time</li>
+              <li class="">built on lies</li>
+              <li class="">javascript is slow</li>
+              <li class="">non-blocking actually blocks</li>
+              <li class="">anything but lightweight</li>
+            </ul>
+            <p class="quote">May I find eternal happiness in the land of evented IO and asynchronous programming</p>
+          </section>
+          <section>
+            <h2>waste of time</h2>
+            <ul>
+              <li>javascript is <a href="http://programmingzen.com/2010/05/14/the-most-important-programming-language-today/">the most important programming language today</a></li>
+              <li>unify client/server code base</li>
+            </ul>
+            <img src="/images/javascript_all_things.jpeg" />
+            <p class="quote">For code is not saved by pull requests alone, but by pull requests and accepting commmits.</p>
+          </section>
+          <section>
+            <h2>built on lies</h2>
+            <img src="/images/spoon.jpeg" style="float:right;" />
+            <p>Do not try to use threads in nodejs — that's impossible. Instead, only try to realize the truth: there are no threads.</p>
+            <p class="quote">you have laid sacrifice unto the foot of Isaacs and have been found worth of his mercy</p>
+          </section>
+          <section>
+            <h2>javascript is slow</h2>
+            <h4>very... very... slow</h4>
+            <p>but it is still faster than PHP, Ruby, and Python. So, what does that make them?</p>
+            <a href="http://shootout.alioth.debian.org/u32/benchmark.php?test=all&lang=v8&lang2=yarv" target="_blank">benchmarks</a>
+            <p class="quote">As one forgets the true nature of code, so he mistakes the io device as being his own, thus binding him to the endless movements and changes and sufferings of the recurring cycles of locks and unlocks that are of his own causing.</p>
+          </section>
+          <section>
+            <h2>non-blocking actually blocks</h2>
+            <img src="/images/john_mccarthy_successories_poster.jpeg" />
+            <p class="quote">And node spoke all these words: I am the Lord who brought you from apache and out of IO bound servers. You shall have no other languages before me.</p>
+          </section>
+          <section>
+            <h2>anything but lightweight</h2>
+            <ul>
+              <li>small api</li>
+              <li>installs easily on all systems</li>
+            </ul>
+            <img src="/images/lightweight.jpeg" />
+          </section>
+        </section>
+        <section>
+          <h1>shall we code?</h1>
+          <img src="/images/coronation.png" />
+        </section>
+        <section>
+          <h1>pros</h1>
+          <ul>
+            <li>
+              new<br />
+              <small>realtime, modules, community</small>
+            </li>
+            <li>
+              javascript<br />
+              <small>expressive, <em>everywhere</em>, quick</small
+            </li>
+            <li>
+              callbacks<br />
+              <small>fine-grained control</small>
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h1>cons</h1>
+          <ul>
+            <li>
+              new<br />
+              <small>changing, write your own modules, npm can go down :(</small>
+            </l1>
+            <li>
+              javascript<br />
+              <small>NaNNaNNaNNaN, dynamic language, messy</small>
+            </l1>
+            <li>
+              callbacks<br />
+              <small>confusing, long, error-prone</small>
+            </li>
+          </ul>
+        </section>
+        <section>
+          <h1>questions?</h1>
+          <a href="http://crowdhall.com/izs">Ask Isaacs</a>
         </section>
       </div>
     </div>
@@ -190,6 +357,8 @@ console.log('after readfile');</code></pre>
         '/javascripts/lib/jquery-1.8.2.min.js',
         function() {
           Reveal.initialize({
+            history: true,
+            mouseWheel: false,
             dependencies: [
               // Syntax highlight for <code> elements
               { 

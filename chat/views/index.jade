@@ -1,0 +1,10 @@
+extends layout
+
+block content
+  h1= title
+  p Welcome to #{title}
+
+  pre.output
+    | output goes here
+  input#input-message(type='text')
+  button#btn-send-message send

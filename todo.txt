@@ -1,0 +1,11 @@
+make pi module
+use commander
+publish to npm
+
+show off slideshow
+
+make new express site (jade && less)
+do something realtime
+use browserify
+
+crowdhall.com/izs

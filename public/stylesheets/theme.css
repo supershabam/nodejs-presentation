@@ -36,6 +36,10 @@ body {
   width: 100%;
 }
 
+.reveal pre.small {
+  font-size: 0.4em;
+}
+
 ::selection {
   color: white;
   background: #134674;
